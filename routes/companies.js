@@ -20,10 +20,9 @@ router.get('/:code', async (req, res, next) => {
 		if (results.rows.length === 0) {
 			throw new ExpressError(`Can't find company with code of ${code}`, 404);
 		}
-		return res.json({
-			company: results.rows[0],
-			invoices: bills.rows
-		});
+		const company = results.rows[0];
+		company.invoices = bills.rows;
+		return res.send(company);
 	} catch (e) {
 		return next(e);
 	}
