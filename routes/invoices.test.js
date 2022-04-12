@@ -90,7 +90,7 @@ describe('POST /invoice', () => {
 
 describe('PUT /invoices/:id', () => {
 	test('Updates a single invoice', async () => {
-		const res = await request(app).put(`/invoices/${testInvoice.id}`).send({ amt: 150 });
+		const res = await request(app).put(`/invoices/${testInvoice.id}`).send({ amt: 150, paid: false });
 		expect(res.statusCode).toBe(200);
 		expect(res.body).toEqual({
 			invoice: {
@@ -104,7 +104,7 @@ describe('PUT /invoices/:id', () => {
 		});
 	});
 	test('Responds with 404 for invalid id', async () => {
-		const res = await request(app).put(`/invoices/99823`).send({ amt: 150 });
+		const res = await request(app).put(`/invoices/87654689`).send({ amt: 150, paid: false });
 		expect(res.statusCode).toBe(404);
 	});
 });
