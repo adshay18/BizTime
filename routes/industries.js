@@ -6,71 +6,47 @@ const db = require('../db');
 router.get('/', async (req, res, next) => {
 	try {
 		const results = await db.query(`SELECT * FROM industries`);
-		return res.json({ industries: results.rows });
+		const industries = results.rows;
+		for (industry of industries) {
+			let code = industry.code;
+			const comps = await db.query(
+				`SELECT c.code FROM companies AS c LEFT JOIN company_industries AS ci ON c.code = ci.comp_code LEFT JOIN industries AS i ON i.code = ci.ind_code WHERE i.code = $1`,
+				[ code ]
+			);
+			industry.companies = comps.rows;
+		}
+		return res.send({ industries });
 	} catch (e) {
 		return next(e);
 	}
 });
 
-// router.get('/:id', async (req, res, next) => {
-// 	try {
-// 		const { id } = req.params;
-// 		const results = await db.query('SELECT * FROM invoices WHERE id = $1', [ id ]);
-// 		if (results.rows.length === 0) {
-// 			throw new ExpressError(`Can't find invoice with id of ${id}`, 404);
-// 		}
-// 		return res.send({ invoice: results.rows[0] });
-// 	} catch (e) {
-// 		return next(e);
-// 	}
-// });
+// Add new industry using JSON request
+router.post('/', async (req, res, next) => {
+	try {
+		const { code, name } = req.body;
+		const results = await db.query('INSERT INTO industries (code, name) VALUES ($1, $2) RETURNING *', [
+			code,
+			name
+		]);
+		return res.status(201).json({ industry: results.rows[0] });
+	} catch (e) {
+		return next(e);
+	}
+});
 
-// // Add new invoice using JSON request
-// router.post('/', async (req, res, next) => {
-// 	try {
-// 		const { comp_code, amt } = req.body;
-// 		const results = await db.query('INSERT INTO invoices (comp_code, amt) VALUES ($1, $2) RETURNING *', [
-// 			comp_code,
-// 			amt
-// 		]);
-// 		return res.status(201).json({ invoice: results.rows[0] });
-// 	} catch (e) {
-// 		return next(e);
-// 	}
-// });
-
-// router.put('/:id', async (req, res, next) => {
-// 	try {
-// 		const { id } = req.params;
-// 		const { amt, paid } = req.body;
-// 		if (paid === true) {
-// 			const results = await db.query(
-// 				'UPDATE invoices SET amt=$2, paid=$3, paid_date=CURRENT_DATE WHERE id=$1 RETURNING *',
-// 				[ id, amt, paid ]
-// 			);
-// 			if (results.rows.length === 0) {
-// 				throw new ExpressError(`Can't update invoice with id of ${id}, invoice not found.`, 404);
-// 			}
-// 			return res.send({ invoice: results.rows[0] });
-// 		} else {
-// 			const results = await db.query(
-// 				'UPDATE invoices SET amt=$2, paid=$3, paid_date=null WHERE id=$1 RETURNING *',
-// 				[ id, amt, paid ]
-// 			);
-// 			return res.send({ invoice: results.rows[0] });
-// 		}
-// 	} catch (e) {
-// 		return next(e);
-// 	}
-// });
-
-// router.delete('/:id', async (req, res, next) => {
-// 	try {
-// 		const results = db.query('DELETE FROM invoices WHERE id = $1', [ req.params.id ]);
-// 		return res.send({ msg: 'DELETED!' });
-// 	} catch (e) {
-// 		return next(e);
-// 	}
-// });
+// Associate a company with an industry using JSON request
+router.post('/companies', async (req, res, next) => {
+	try {
+		const { ind_code, comp_code } = req.body;
+		const results = await db.query(
+			'INSERT INTO company_industries (ind_code, comp_code) VALUES ($1, $2) RETURNING *',
+			[ ind_code, comp_code ]
+		);
+		return res.status(201).json({ industry: results.rows[0] });
+	} catch (e) {
+		return next(e);
+	}
+});
 
 module.exports = router;
