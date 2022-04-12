@@ -47,7 +47,7 @@ router.put('/:id', async (req, res, next) => {
 		if (results.rows.length === 0) {
 			throw new ExpressError(`Can't update invoice with id of ${id}, invoice not found.`, 404);
 		}
-		return res.send({ company: results.rows[0] });
+		return res.send({ invoice: results.rows[0] });
 	} catch (e) {
 		return next(e);
 	}
