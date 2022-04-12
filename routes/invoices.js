@@ -42,12 +42,23 @@ router.post('/', async (req, res, next) => {
 router.put('/:id', async (req, res, next) => {
 	try {
 		const { id } = req.params;
-		const { amt } = req.body;
-		const results = await db.query('UPDATE invoices SET amt=$2 WHERE id=$1 RETURNING *', [ id, amt ]);
-		if (results.rows.length === 0) {
-			throw new ExpressError(`Can't update invoice with id of ${id}, invoice not found.`, 404);
+		const { amt, paid } = req.body;
+		if (paid === true) {
+			const results = await db.query(
+				'UPDATE invoices SET amt=$2, paid=$3, paid_date=CURRENT_DATE WHERE id=$1 RETURNING *',
+				[ id, amt, paid ]
+			);
+			if (results.rows.length === 0) {
+				throw new ExpressError(`Can't update invoice with id of ${id}, invoice not found.`, 404);
+			}
+			return res.send({ invoice: results.rows[0] });
+		} else {
+			const results = await db.query(
+				'UPDATE invoices SET amt=$2, paid=$3, paid_date=null WHERE id=$1 RETURNING *',
+				[ id, amt, paid ]
+			);
+			return res.send({ invoice: results.rows[0] });
 		}
-		return res.send({ invoice: results.rows[0] });
 	} catch (e) {
 		return next(e);
 	}
