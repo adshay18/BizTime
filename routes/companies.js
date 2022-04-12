@@ -18,11 +18,20 @@ router.get('/:code', async (req, res, next) => {
 		const { code } = req.params;
 		const results = await db.query('SELECT * FROM companies WHERE code = $1', [ code ]);
 		const bills = await db.query('SELECT * FROM invoices WHERE comp_code = $1', [ code ]);
+		const ind = await db.query(
+			`
+			SELECT i.code, i.name FROM industries AS i
+			LEFT JOIN company_industries AS ci ON i.code=ci.ind_code
+			LEFT JOIN companies AS c ON ci.comp_code=c.code
+			WHERE c.code = $1`,
+			[ code ]
+		);
 		if (results.rows.length === 0) {
 			throw new ExpressError(`Can't find company with code of ${code}`, 404);
 		}
 		const company = results.rows[0];
 		company.invoices = bills.rows;
+		company.industries = ind.rows;
 		return res.send(company);
 	} catch (e) {
 		return next(e);

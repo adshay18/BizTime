@@ -1,6 +1,8 @@
 \c biztime
 
 DROP TABLE IF EXISTS invoices;
+DROP TABLE IF EXISTS company_industries;
+DROP TABLE IF EXISTS industries;
 DROP TABLE IF EXISTS companies;
 
 CREATE TABLE companies (
@@ -52,7 +54,7 @@ INSERT INTO company_industries (ind_code, comp_code)
   VALUES  ('tech', 'apple'),
           ('tech', 'ibm'),
           ('cpu', 'apple'),
-          ('cpu', 'apple'),
+          ('cpu', 'ibm'),
           ('tech', 'bosch'),
           ('auto', 'bosch'),
           ('manf', 'apple'),
